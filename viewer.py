@@ -1,6 +1,5 @@
 import sys
 import numpy
-import keyboard  # using module keyboard
 import argparse
 
 from dataset import Dataset
