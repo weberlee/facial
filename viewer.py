@@ -5,30 +5,18 @@ import re
 import sys
 import cmd
 import json
-import signal
-import array
 import readline
+import subprocess
+import threading
 import numpy
-import argparse
 
+from threading import Thread
 from dataset import Dataset
 from matplotlib import pyplot as plt
 
-# if __name__ == '__main__':
-#     # parse command line arguments
-#     parser = argparse.ArgumentParser(
-#         description='Perform ' + sys.argv[0] + ' show a smaple training image and info')
-#     parser.add_argument('-i', '--image_index', type=int, help='image id', default=None)
-#     parser.add_argument('-d', '--display_image', type=bool, help='image id', default=True)
-#     parser.add_argument('-t', '--display_transforms', type=int, help='image id', default=None)
-#     args = parser.parse_args()
+history_file = os.path.expanduser("~/.dataset_shell.hist")
 
-#     dataset = Dataset()
-#     if args.image_index:
-#         dataset.show_image_data(index=args.image_index, data=args.display_image)
-
-#     if args.display_transforms:
-#         dataset.show_transformed(index=args.display_transforms)
+dataset = Dataset()
 
 class CmdProcessor(cmd.Cmd):
 
@@ -52,6 +40,7 @@ class CmdProcessor(cmd.Cmd):
         show image index 1: display image by index
         """
         index = line
+        dataset.show_image_data(index=index, data=True)
 
 
     def do_show_trans(self, line):
@@ -64,7 +53,7 @@ class CmdProcessor(cmd.Cmd):
     def do_exit(self, line):
         'Exit'
 
-        print ""
+        print("")
         readline.write_history_file(history_file)
         return True
 
@@ -72,10 +61,6 @@ class CmdProcessor(cmd.Cmd):
 
 
 if __name__ == '__main__':
-
-    signal.signal(signal.SIGINT, SafeExit)
-    signal.signal(signal.SIGTERM, SafeExit)
-    signal.signal(signal.SIGHUP, SafeExit)
 
     try:
         if not os.path.isfile(history_file):
