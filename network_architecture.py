@@ -38,6 +38,9 @@ test_loader = DataLoader(transformed_test_dataset,
                           shuffle=True,
                           num_workers=4)
 
+import time
+time.sleep(10)
+
 # test the model on a batch of test images
 
 def net_sample_output():
@@ -71,7 +74,6 @@ test_images, test_outputs, gt_pts = net_sample_output()
 print(test_images.data.size())
 print(test_outputs.data.size())
 print(gt_pts.size())
-
 
 def show_all_keypoints(image, predicted_key_pts, gt_pts=None):
     """Show image with predicted keypoints"""
@@ -192,11 +194,11 @@ train_net(n_epochs)
 # visualize_output(test_images, test_outputs, gt_pts)
 
 # ## TODO: change the name to something uniqe for each new model
-# model_dir = 'saved_models/'
-# model_name = 'keypoints_model_1.pt'
+model_dir = 'saved_models/'
+model_name = 'keypoints_model_1.pt'
 
 # # after training, save your model parameters in the dir 'saved_models'
-# torch.save(net.state_dict(), model_dir+model_name)
+torch.save(net.state_dict(), model_dir+model_name)
 
 
 # # Get the weights in the first conv layer, "conv1"
