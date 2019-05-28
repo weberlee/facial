@@ -5,73 +5,35 @@ import numpy as np
 # import utilities to keep workspaces alive during model training
 from workspace_utils import active_session
 
-
-## TODO: Define the Net in models.py
-
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-
-## TODO: Once you've define the network, you can instantiate it
-# one example conv layer has been provided for you
 from models import Net
 
 net = Net()
-print(net)
 
 ## Define a data transform¶
 from torch.utils.data import Dataset, DataLoader
 from torchvision import transforms, utils
+from data_tools import DataTools
 
-# the dataset we created in Notebook 1 is copied in the helper file `data_load.py`
-from data_load import FacialKeypointsDataset
-# the transforms we defined in Notebook 1 are in the helper file `data_load.py`
-from data_load import Rescale, RandomCrop, Normalize, ToTensor
-
-## TODO: define the data_transform using transforms.Compose([all tx's, . , .])
-# order matters! i.e. rescaling should come before a smaller crop
-data_transform = transforms.Compose([Rescale(250),
-                                     RandomCrop(224),
-                                     Normalize(),
-                                     ToTensor()])
-
-# testing that you've defined a transform
-assert(data_transform is not None), 'Define a data_transform'
-
-# create the transformed dataset
-transformed_dataset = FacialKeypointsDataset(csv_file='/data/training_frames_keypoints.csv',
-                                             root_dir='/data/training/',
-                                             transform=data_transform)
-
-
-print('Number of images: ', len(transformed_dataset))
-print('Tensor type: ', type(transformed_dataset[1]))
+data_tools = DataTools()
+transformed_training_dataset = data_tools.transformed_training_data
+transformed_test_dataset = data_tools.transformed_test_data
 
 # iterate through the transformed dataset and print some stats about the first few samples
 for i in range(4):
-    sample = transformed_dataset[i]
+    sample = transformed_training_dataset[i]
     print(i, sample['image'].size(), sample['keypoints'].size())
 
 # load training data in batches
 batch_size = 10
-
-train_loader = DataLoader(transformed_dataset,
+train_loader = DataLoader(transformed_training_dataset,
                           batch_size=batch_size,
                           shuffle=True,
                           num_workers=4)
 
-# load in the test data, using the dataset class
-# AND apply the data_transform you defined above
-
-# create the test dataset
-test_dataset = FacialKeypointsDataset(csv_file='/data/test_frames_keypoints.csv',
-                                             root_dir='/data/test/',
-                                             transform=data_transform)
-
-# load test data in batches
-batch_size = 10
-
-test_loader = DataLoader(test_dataset,
+test_loader = DataLoader(transformed_test_dataset,
                           batch_size=batch_size,
                           shuffle=True,
                           num_workers=4)
@@ -123,7 +85,7 @@ def show_all_keypoints(image, predicted_key_pts, gt_pts=None):
 
 # visualize the output
 # by default this shows a batch of 10 images
-def visualize_output(test_images, test_outputs, gt_pts=None, batch_size=10):
+def visualize_output(test_images, test_outputs, gt_pts=None, batch_size=2):
 
     for i in range(batch_size):
         plt.figure(figsize=(20,10))
@@ -153,17 +115,13 @@ def visualize_output(test_images, test_outputs, gt_pts=None, batch_size=10):
 
     plt.show()
 
-# call it
-visualize_output(test_images, test_outputs, gt_pts)
+# visualize_output(test_images, test_outputs, gt_pts)
 
 
-## TODO: Define the loss and optimization
 import torch.optim as optim
-
+# Define the loss and optimization
 criterion = nn.SmoothL1Loss()
-
 optimizer = optim.Adam(net.parameters(), lr=0.0005)
-
 
 
 def train_net(n_epochs):
@@ -214,67 +172,68 @@ def train_net(n_epochs):
 
 # train your network
 n_epochs = 1 # start small, and increase when you've decided on your model structure and hyperparams
+train_net(n_epochs)
 
 # this is a Workspaces-specific context manager to keep the connection
 # alive while training your model, not part of pytorch
-with active_session():
-    train_net(n_epochs)
+# with active_session():
+#     train_net(n_epochs)
 
-# get a sample of test data again
-test_images, test_outputs, gt_pts = net_sample_output()
+# # get a sample of test data again
+# test_images, test_outputs, gt_pts = net_sample_output()
 
-print(test_images.data.size())
-print(test_outputs.data.size())
-print(gt_pts.size())
+# print(test_images.data.size())
+# print(test_outputs.data.size())
+# print(gt_pts.size())
 
-## TODO: visualize your test output
-# you can use the same function as before, by un-commenting the line below:
+# ## TODO: visualize your test output
+# # you can use the same function as before, by un-commenting the line below:
 
-visualize_output(test_images, test_outputs, gt_pts)
+# visualize_output(test_images, test_outputs, gt_pts)
 
-## TODO: change the name to something uniqe for each new model
-model_dir = 'saved_models/'
-model_name = 'keypoints_model_1.pt'
+# ## TODO: change the name to something uniqe for each new model
+# model_dir = 'saved_models/'
+# model_name = 'keypoints_model_1.pt'
 
-# after training, save your model parameters in the dir 'saved_models'
-torch.save(net.state_dict(), model_dir+model_name)
-
-
-# Get the weights in the first conv layer, "conv1"
-# if necessary, change this to reflect the name of your first conv layer
-weights1 = net.conv1.weight.data
-
-w = weights1.numpy()
-
-filter_index = 0
-
-print(w[filter_index][0])
-print(w[filter_index][0].shape)
-
-# display the filter weights
-plt.imshow(w[filter_index][0], cmap='gray')
+# # after training, save your model parameters in the dir 'saved_models'
+# torch.save(net.state_dict(), model_dir+model_name)
 
 
-##TODO: load in and display any image from the transformed test dataset
+# # Get the weights in the first conv layer, "conv1"
+# # if necessary, change this to reflect the name of your first conv layer
+# weights1 = net.conv1.weight.data
 
-## TODO: Using cv's filter2D function,
-## apply a specific set of filter weights (like the one displayed above) to the test image
+# w = weights1.numpy()
 
-def net_sample_filter():
-    # iterate through the test dataset
-    for i, sample in enumerate(test_loader):
-        # get sample image
-        return sample['image'][0][0]
+# filter_index = 0
 
-net.load_state_dict(torch.load(model_dir + model_name))
-w1 = net.conv1.weight.data.numpy()
-w2 = net.conv2.weight.data.numpy()
-img = net_sample_filter().numpy()
-plt.imshow(img, cmap='gray')
-plt.show()
+# print(w[filter_index][0])
+# print(w[filter_index][0].shape)
 
-import cv2
-plt.imshow(cv2.filter2D(img, -1, w1[0][0]), cmap='gray')
-plt.show()
-plt.imshow(cv2.filter2D(img, -1, w2[0][0]), cmap='gray')
-plt.show()
+# # display the filter weights
+# plt.imshow(w[filter_index][0], cmap='gray')
+
+
+# ##TODO: load in and display any image from the transformed test dataset
+
+# ## TODO: Using cv's filter2D function,
+# ## apply a specific set of filter weights (like the one displayed above) to the test image
+
+# def net_sample_filter():
+#     # iterate through the test dataset
+#     for i, sample in enumerate(test_loader):
+#         # get sample image
+#         return sample['image'][0][0]
+
+# net.load_state_dict(torch.load(model_dir + model_name))
+# w1 = net.conv1.weight.data.numpy()
+# w2 = net.conv2.weight.data.numpy()
+# img = net_sample_filter().numpy()
+# plt.imshow(img, cmap='gray')
+# plt.show()
+
+# import cv2
+# plt.imshow(cv2.filter2D(img, -1, w1[0][0]), cmap='gray')
+# plt.show()
+# plt.imshow(cv2.filter2D(img, -1, w2[0][0]), cmap='gray')
+# plt.show()
