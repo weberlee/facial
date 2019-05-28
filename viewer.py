@@ -11,12 +11,12 @@ import threading
 import numpy
 
 from threading import Thread
-from dataset import Dataset
+from data_tools import DataTools
 from matplotlib import pyplot as plt
 
 history_file = os.path.expanduser("~/.dataset_shell.hist")
 
-dataset = Dataset()
+data_tools = DataTools()
 
 class CmdProcessor(cmd.Cmd):
 
@@ -40,7 +40,7 @@ class CmdProcessor(cmd.Cmd):
         show image index 1: display image by index
         """
         index = line
-        dataset.show_image_data(index=index, data=True)
+        data_tools.show_image_data(index=index, data=True)
 
 
     def do_show_trans(self, line):
