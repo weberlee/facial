@@ -10,16 +10,26 @@ import cv2
 from data_load import FacialKeypointsDataset, Normalize, Rescale, RandomCrop, ToTensor
 from torchvision import transforms, utils
 
-class Dataset():
+class DataTools():
 
-    def __init__(self, root_dir=None, csv_file_path=None, training_dir_path=None):
+    def __init__(self, root_dir=None):
         self.data_root_dir = root_dir or './data/'
-        self.training_csv = csv_file_path or os.path.join(self.data_root_dir, 'training_frames_keypoints.csv')
-        self.training_data_dir = training_dir_path or os.path.join(self.data_root_dir, 'training/')
+        self.training_csv = os.path.join(self.data_root_dir, 'training_frames_keypoints.csv')
+        self.training_data_dir = os.path.join(self.data_root_dir, 'training/')
+        self.test_csv = os.path.join(self.data_root_dir, 'test_frames_keypoints.csv')
+        self.test_data_dir = os.path.join(self.data_root_dir, 'test/')
         self.key_pts_frame = pd.read_csv(self.training_csv)
         self.face_dataset = FacialKeypointsDataset(csv_file=self.training_csv,
                                                    root_dir=self.training_data_dir)
         self.face_dataset_len = len(self.face_dataset)
+        # define the data tranform
+        # order matters! i.e. rescaling should come before a smaller crop
+        self.data_transform = transforms.Compose([Rescale(250),
+                                                  RandomCrop(224),
+                                                  Normalize(),
+                                                  ToTensor()])
+        self.transformed_training_data = self.transform_data(self.training_csv, self.training_data_dir)
+        self.transformed_test_data = self.transform_data(self.test_csv, self.test_data_dir)
 
     def get_image_name(self, index):
         """Get image full path"""
@@ -61,18 +71,11 @@ class Dataset():
         plt.scatter(key_pts[:, 0], key_pts[:, 1], s=20, marker='.', c='m')
         plt.show()
 
-    def transform_data(self):
-        # define the data tranform
-        # order matters! i.e. rescaling should come before a smaller crop
-        data_transform = transforms.Compose([Rescale(250),
-                                             RandomCrop(224),
-                                             Normalize(),
-                                             ToTensor()])
-
+    def transform_data(self, csv_file, root_dir):
         # create the transformed dataset
-        transformed_dataset = FacialKeypointsDataset(csv_file=self.training_csv,
-                                                     root_dir=self.training_data_dir,
-                                                     transform=data_transform)
+        transformed_dataset = FacialKeypointsDataset(csv_file=csv_file,
+                                                     root_dir=root_dir,
+                                                     transform=self.data_transform)
         return transformed_dataset
 
     def show_transformed(self, index):
