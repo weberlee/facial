@@ -16,10 +16,17 @@ from torch.utils.data import Dataset, DataLoader
 from torchvision import transforms, utils
 from data_tools import DataTools
 
+# python train.py \
+# --epochs 4 \
+# --lr 0.0005 \
+# --batch_size 10 \
+# --num_workers 4 \
+# --experiment_name test_run \
+# --gpu
+
 def parse(args=None):
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('--attrs', dest='attrs', default=attrs_default, nargs='+', help='attributes to learn')
     parser.add_argument('--data', dest='data', type=str, choices=['CelebA', 'CelebA-HQ'], default='CelebA')
     parser.add_argument('--data_path', dest='data_path', type=str, default='data/img_align_celeba')
     parser.add_argument('--attr_path', dest='attr_path', type=str, default='data/list_attr_celeba.txt')
@@ -74,7 +81,6 @@ args = parse()
 print(args)
 
 args.lr_base = args.lr
-args.n_attrs = len(args.attrs)
 args.betas = (args.beta1, args.beta2)
 
 os.makedirs(join('output', args.experiment_name), exist_ok=True)
