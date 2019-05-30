@@ -39,7 +39,7 @@ class DataTools():
 
     def get_image_key_pts(self, index):
         """Get image full path"""
-        key_pts = self.key_pts_frame.iloc[index, 1:].as_matrix()
+        key_pts = self.key_pts_frame.iloc[index, 1:].values
         key_pts = key_pts.astype('float').reshape(-1, 2)
         return key_pts
 
