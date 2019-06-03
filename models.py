@@ -39,9 +39,9 @@ class Net(nn.Module):
         self.conv4_drop = nn.Dropout(p=0.4)
 
         # Fully Connected Layer
-        self.fc1 = nn.Linear(256*13*13, 1000)
-        self.fc2 = nn.Linear(1000, 1000)
-        self.fc3 = nn.Linear(1000, 136)
+        self.fc1 = nn.Linear(256*12*12, 1000)
+        self.fc2 = nn.Linear(1000, 500)
+        self.fc3 = nn.Linear(500, 136)
 
         # Fully Connected Dropout
         self.fc1_drop = nn.Dropout(p=0.5)
