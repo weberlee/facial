@@ -2,6 +2,9 @@ import cv2
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
+import torch
+from torch.autograd import Variable
+from models import Net
 
 # load in color image for face detection
 image = cv2.imread('images/obamas.jpg')
@@ -34,13 +37,10 @@ plt.imshow(image_with_detections)
 
 
 ## Loading in a trained model
-import torch
-from models import Net
-
 net = Net()
 
 # load saved model parameters
-net.load_state_dict(torch.load('saved_models/keypoints_model_1.pt'))
+net.load_state_dict(torch.load('saved_models/test_run_2.pt'))
 
 
 # print out the net and prepare it for testing
@@ -61,17 +61,19 @@ net.eval()
 def visualize_output(faces, test_outputs):
     batch_size = len(faces)
     for i, face in enumerate(faces):
-        plt.figure(figsize=(8, 8))
-        ax = plt.subplot(1, batch_size, i+1)
+        plt.figure(figsize=(5, 5))
 
         # un-transform the predicted key_pts data
-        predicted_key_pts = test_outputs[i].data
-        predicted_key_pts = predicted_key_pts.numpy()
+        key_pts = test_outputs[i].data
+        key_pts = key_pts.detach().numpy()
         # undo normalization of keypoints
-        predicted_key_pts = predicted_key_pts*50.0+100
+        key_pts = key_pts * 58 + 108
+        key_pts = np.reshape(key_pts,(68, -1))
+
+        face = face.numpy().transpose(1,2,0).squeeze()
 
         plt.imshow(face, cmap='gray')
-        plt.scatter(predicted_key_pts[:, 0], predicted_key_pts[:, 1], s=20, marker='.', c='m')
+        plt.scatter(key_pts[:, 0], key_pts[:, 1], s=40, marker='.', c='m')
 
         plt.axis('off')
 
@@ -80,43 +82,34 @@ def visualize_output(faces, test_outputs):
 image_copy = np.copy(image)
 #Including a padding to extract face as  HAAR classifier's bounding box, crops sections of the face
 
-PADDING = 40
+PADDING = 60
 images, keypoints = [], []
 
 # loop over the detected faces from your haar cascade
 for (x,y,w,h) in faces:
 
     # Select the region of interest that is the face in the image
-    roi = image_copy[y-PADDING:y+h+PADDING, x-PADDING:x+w+PADDING]
+    roi = image_copy[y - PADDING:y + h + PADDING, x - PADDING:x + w + PADDING]
 
     # Convert the face region from RGB to grayscale
     roi = cv2.cvtColor(roi, cv2.COLOR_RGB2GRAY)
 
     # Normalize the grayscale image so that its color range falls in [0,1] instead of [0,255]
-    roi = (roi / 255.).astype(np.float32)
+    roi = roi / 255
 
     # Rescale the detected face to be the expected square size for your CNN (224x224, suggested)
     roi = cv2.resize(roi, (224, 224))
-    images.append(roi)
 
     # Reshape the numpy image shape (H x W x C) into a torch image shape (C x H x W)
-    if len(roi.shape) == 2:
-        roi = np.expand_dims(roi, axis=0)
-    else:
-        roi = np.rollaxis(roi, 2, 0)
-
-    # Make it a batch of length 1
-    roi = np.expand_dims(roi, axis=0)
+    roi = np.reshape(roi, (1, 1, 224, 224))
 
     #  Make facial keypoint predictions using your loaded, trained network
     ## perform a forward pass to get the predicted facial keypoints
-    roi = torch.from_numpy(roi).type(torch.FloatTensor)
-    results = net.forward(roi)
+    roi_torch = Variable(torch.from_numpy(roi))
+    roi_torch = roi_torch.type(torch.FloatTensor)
 
-    print(results.size())
-
-    results = results.view(results.size()[0], 68, -1)
-    keypoints.append(results[0])
+    images.append(roi_torch.squeeze(0))
+    keypoints.append(net(roi_torch)[0])
 
 # Display each detected face and the corresponding keypoints
 visualize_output(images, keypoints)
