@@ -2,7 +2,6 @@ import cv2
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
-get_ipython().run_line_magic('matplotlib', 'inline')
 
 # load in color image for face detection
 image = cv2.imread('images/obamas.jpg')
