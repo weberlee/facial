@@ -23,6 +23,7 @@ class Net(nn.Module):
 
         # Convolutional Layer
         self.conv1 = nn.Conv2d(1, 32, 5)
+        # output = (W-F)/S +1 = (110-3)/1 +1 = 108
         self.conv2 = nn.Conv2d(32, 64, 3)
         self.conv3 = nn.Conv2d(64, 128, 3)
         self.conv4 = nn.Conv2d(128, 256, 2)
