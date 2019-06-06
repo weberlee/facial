@@ -25,6 +25,7 @@ class Net(nn.Module):
         self.conv1 = nn.Conv2d(1, 32, 5)
         # output = (W-F)/S +1 = (110-3)/1 +1 = 108
         self.conv2 = nn.Conv2d(32, 64, 3)
+        # output = (W-F)/S +1 = (110-3)/1 +1 = 108
         self.conv3 = nn.Conv2d(64, 128, 3)
         self.conv4 = nn.Conv2d(128, 256, 2)
 
@@ -59,13 +60,13 @@ class Net(nn.Module):
         ## x = self.pool(F.relu(self.conv1(x)))
 
         # four conv/relu + pool layers
-        x = self.pool(F.relu(self.conv1(x)))
+        x = F.relu(self.pool(self.conv1(x)))
         x = self.conv1_drop(x)
-        x = self.pool(F.relu(self.conv2(x)))
+        x = F.relu(self.pool(self.conv2(x)))
         x = self.conv2_drop(x)
-        x = self.pool(F.relu(self.conv3(x)))
+        x = F.relu(self.pool(self.conv3(x)))
         x = self.conv3_drop(x)
-        x = self.pool(F.relu(self.conv4(x)))
+        x = F.relu(self.pool(self.conv4(x)))
         x = self.conv4_drop(x)
 
         # prep for linear layer
