@@ -20,34 +20,35 @@ class Net(nn.Module):
         # As an example, you've been given a convolutional layer, which you may (but don't have to) change:
         # 1 input image channel (grayscale), 32 output channels/feature maps, 5x5 square convolution kernel
         # output = (W-F)/S+1 = (224-5)/1+1=220, the output tensor for one image will be (32, 220, 220)
-
-        # Convolutional Layer
         self.conv1 = nn.Conv2d(1, 32, 5)
-        # output = (W-F)/S +1 = (110-3)/1 +1 = 108
-        self.conv2 = nn.Conv2d(32, 64, 3)
-        # output = (W-F)/S +1 = (110-3)/1 +1 = 108
+        self.conv1_drop = nn.Dropout(p=0.1)
+
+
+        # output = (W-F)/S +1 = (220-3)/2 +1 = 109
+        self.conv2 = nn.Conv2d(32, 64, 4)
+        self.conv2_drop = nn.Dropout(p=0.2)
+
+        # output = (W-F)/S +1 = (109-3)/2 +1 = 54
         self.conv3 = nn.Conv2d(64, 128, 3)
-        self.conv4 = nn.Conv2d(128, 256, 2)
+        self.conv3_drop = nn.Dropout(p=0.3)
+
+        # output = (W-F)/S +1 = (54-3)/2 +1 = 26
+        self.conv4 = nn.Conv2d(128, 256, 3)
+        self.conv4_drop = nn.Dropout(p=0.4)
 
         # maxpool layer
         # pool with kernel_size=2, stride=2
         # (32, 110, 110)
         self.pool = nn.MaxPool2d(2, stride=2)
 
-        # Convolutional Dropout
-        self.conv1_drop = nn.Dropout(p=0.1)
-        self.conv2_drop = nn.Dropout(p=0.2)
-        self.conv3_drop = nn.Dropout(p=0.3)
-        self.conv4_drop = nn.Dropout(p=0.4)
-
         # Fully Connected Layer
         self.fc1 = nn.Linear(256*12*12, 1000)
-        self.fc2 = nn.Linear(1000, 500)
-        self.fc3 = nn.Linear(500, 136)
-
-        # Fully Connected Dropout
         self.fc1_drop = nn.Dropout(p=0.5)
+
+        self.fc2 = nn.Linear(1000, 500)
         self.fc2_drop = nn.Dropout(p=0.6)
+
+        self.fc3 = nn.Linear(500, 136)
 
         ## Note that among the layers to add, consider including:
         # maxpooling layers, multiple conv layers, fully-connected layers, and other layers (such as dropout or batch normalization) to avoid overfitting
